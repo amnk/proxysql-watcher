@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+ name: proxysql-watcher
+spec:
+ replicas: 1 # tells deployment to run N pods matching the template
+ selector:
+   app: proxysql-watcher
+ template: # create pods using pod definition in this template
+   metadata:
+     name: proxysql-watcher
+     labels:
+       app: proxysql-watcher
+   spec:
+     containers:
+     - name: proxysql-watcher
+       image: 127.0.0.1:31500/changes:latest
+       imagePullPolicy: Always
+       env:
+         - name: MYSQL_ROOT_PASSWORD
+           valueFrom:
+             configMapKeyRef:
+               name: percona-config
+               key: mysql-root-password
+         - name: DISCOVERY_SERVICE
+           valueFrom:
+             configMapKeyRef:
+               name: percona-config
+               key: discovery-service
+         - name: CLUSTER_NAME
+           valueFrom:
+             configMapKeyRef:
+               name: percona-config
+               key: cluster-name
+         - name: MYSQL_PROXY_USER
+           valueFrom:
+             configMapKeyRef:
+               name: percona-config
+               key: mysql-proxy-user
+         - name: MYSQL_PROXY_PASSWORD
+           valueFrom:
+             configMapKeyRef:
+               name: percona-config
+               key: mysql-proxy-password
+
+
