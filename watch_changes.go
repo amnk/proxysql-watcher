@@ -104,9 +104,16 @@ func main() {
 		if err != nil {
 			log.Printf("Error occured: %s", err)
 		}
+
+                // Delete event is tricky, because it is either TTL or actual
+                // node poweroff. In the first case we should do nothing,
+                // in the second - delete node from ProxySQL. But we rely on
+                // ProxySQL monitoring to do this now.
+                if resp.Action == "delete" {
+                        continue
+                }
 		if resp.Node.Dir {
 			key := resp.Node.Key
-			log.Printf("Received updated for %s", key)
 			_, ok := nodes[key]
 			if !ok {
 				new_node := make(map[string]string)
@@ -119,7 +126,7 @@ func main() {
 					fmt.Sprintf("-p%s", *root_pass),
 					fmt.Sprintf("-h%s", new_node[key]),
 					"-e",
-					fmt.Sprintf("GRANT ALL ON *.* TO '%s'@'%s' IDENTIFIED BY '%s'", *proxy_user, *proxy_address, *proxy_pass)}
+					fmt.Sprintf("GRANT ALL ON *.* TO '%s'@'%s' IDENTIFIED BY '%s'", *proxy_user, "%", *proxy_pass)}
 
 				mysql2 := []string{"-uadmin",
 					"-padmin",
@@ -135,6 +142,7 @@ func main() {
 					//new node takes some time to boot, so
 					//if connection failes we should not
 					//exit
+                                        log.Printf(string(output))
 					continue
 
 				}
@@ -142,10 +150,12 @@ func main() {
 				mysql2_r := exec.Command("mysql", mysql2...)
 				output, err2 := mysql2_r.CombinedOutput()
 				if err2 != nil {
-					log.Fatal(mysql2_r, string(output))
+					log.Printf(string(output))
 				}
 
-				nodes[key] = new_node[key]
+                                if err1 == nil && err2 == nil {
+                                        nodes[key] = new_node[key]
+                                }
 			}
 
 		}
