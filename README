@@ -1,7 +1,0 @@
-Very basic and experimental watcher for ProxySQL: https://github.com/sysown/proxysql
-
-Watcher monitors changes to specific Etcd prefix and populates those changes to ProxySQL.
-
-For now a lot of values are hardcoded.
-
-Use at your own risk!

@@ -135,7 +135,6 @@ func main() {
 					"-e",
 					fmt.Sprintf("REPLACE INTO mysql_servers (hostgroup_id, hostname, port, max_replication_lag) VALUES (0, '%s', 3306, 20);", new_node[key])}
 
-				log.Printf("New node %s, adding to the cluster", key)
 				mysql1_r := exec.Command("mysql", mysql1...)
 				output, err1 := mysql1_r.CombinedOutput()
 				if err1 != nil {
@@ -154,6 +153,7 @@ func main() {
 				}
 
                                 if err1 == nil && err2 == nil {
+                                        log.Printf("New node %s, adding to the cluster", key)
                                         nodes[key] = new_node[key]
                                 }
 			}
