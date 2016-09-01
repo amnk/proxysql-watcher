@@ -65,36 +65,36 @@ func main() {
 	c, _ := NewEtcdClient([]string{conn})
 	nodes := make(map[string]string)
 
-	mysql3 := []string{"-uadmin",
-		"-padmin",
-		fmt.Sprintf("-h%s", *proxy_address),
-		"-P6032",
-		"-e",
-		fmt.Sprintf("REPLACE INTO mysql_users (username, password, active, default_hostgroup, max_connections) VALUES ('%s', '%s', 1, 0, 200);", *proxy_user, *proxy_pass)}
-
-	mysql4 := []string{"-uadmin",
-		"-padmin",
-		fmt.Sprintf("-h%s", *proxy_address),
-		"-P6032",
-		"-e",
-		"LOAD MYSQL SERVERS TO RUNTIME; SAVE MYSQL SERVERS TO DISK; LOAD MYSQL USERS TO RUNTIME; SAVE MYSQL USERS TO DISK;"}
-
-	log.Printf("Populating mysql_users table")
-	mysql3_r := exec.Command("mysql", mysql3...)
-	output, err3 := mysql3_r.CombinedOutput()
-	if err3 != nil {
-		log.Fatal(mysql3_r, string(output))
-	}
-
-        log.Printf("Populating values to runtime")
-	mysql4_r := exec.Command("mysql", mysql4...)
-	output, err4 := mysql4_r.CombinedOutput()
-	if err4 != nil {
-		log.Fatal(mysql4_r, string(output))
-	}
-
 	//watcher := c.client.Watcher(*prefix, &client.WatcherOptions{AfterIndex: uint64(0), Recursive: true})
 	for {
+                //We populate ProxySQL watcher database in a loop to prevent
+                //loosing state
+	        mysql3 := []string{"-uadmin",
+	        	"-padmin",
+	        	fmt.Sprintf("-h%s", *proxy_address),
+	        	"-P6032",
+	        	"-e",
+	        	fmt.Sprintf("REPLACE INTO mysql_users (username, password, active, default_hostgroup, max_connections) VALUES ('%s', '%s', 1, 0, 200);", *proxy_user, *proxy_pass)}
+
+	        mysql4 := []string{"-uadmin",
+	        	"-padmin",
+	        	fmt.Sprintf("-h%s", *proxy_address),
+	        	"-P6032",
+	        	"-e",
+	        	"LOAD MYSQL SERVERS TO RUNTIME; SAVE MYSQL SERVERS TO DISK; LOAD MYSQL USERS TO RUNTIME; SAVE MYSQL USERS TO DISK;"}
+
+	        mysql3_r := exec.Command("mysql", mysql3...)
+	        output, err3 := mysql3_r.CombinedOutput()
+	        if err3 != nil {
+	        	log.Printf(string(output))
+	        }
+
+	        mysql4_r := exec.Command("mysql", mysql4...)
+	        output, err4 := mysql4_r.CombinedOutput()
+	        if err4 != nil {
+	        	log.Printf(string(output))
+	        }
+
 		// endless loop that watches for new nodes in "prefix" and
 		// populates nodes map
 		// TODO: implement delete action
