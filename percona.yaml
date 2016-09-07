@@ -77,7 +77,7 @@ spec:
    spec:
      containers:
      - name: proxysql
-       image: percona/proxysql:1.2.1
+       image: amnk/proxysql:1.2.2
        imagePullPolicy: Always
        ports:
          - containerPort: 3306

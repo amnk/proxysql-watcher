@@ -63,7 +63,7 @@ func main() {
 
 	conn := fmt.Sprintf("http://%s", *etcd_service)
 	c, _ := NewEtcdClient([]string{conn})
-	nodes := make(map[string]string)
+       	//nodes := make(map[string]string)
 
 	//watcher := c.client.Watcher(*prefix, &client.WatcherOptions{AfterIndex: uint64(0), Recursive: true})
 	for {
@@ -114,7 +114,8 @@ func main() {
                 }
 		if resp.Node.Dir {
 			key := resp.Node.Key
-			_, ok := nodes[key]
+			//_, ok := nodes[key]
+                        ok := false
 			if !ok {
 				new_node := make(map[string]string)
 				// Apparently recursive watch does not populate
@@ -154,7 +155,7 @@ func main() {
 
                                 if err1 == nil && err2 == nil {
                                         log.Printf("New node %s, adding to the cluster", key)
-                                        nodes[key] = new_node[key]
+                                        //nodes[key] = new_node[key]
                                 }
 			}
 

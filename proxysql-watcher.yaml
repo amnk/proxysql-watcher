@@ -14,7 +14,7 @@ spec:
    spec:
      containers:
      - name: proxysql-watcher
-       image: 127.0.0.1:31500/changes:latest
+       image: amnk/proxysql-watcher:latest
        imagePullPolicy: Always
        env:
          - name: MYSQL_ROOT_PASSWORD
