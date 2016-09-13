@@ -40,3 +40,7 @@ sysbench --num-threads=4 --max-time=20 --test=oltp --db-ps-mode=disable
 Watcher monitors prefix in Etcd, where Percona nodes store their status. After
 the node is created and started, watcher configures permissions for
 `mysql-proxy-user` and adds new server to ProxySQL.
+
+## How to test
+I've included `monkey.py` which is able to randomly destroy pods. Use it on
+your own risk!
