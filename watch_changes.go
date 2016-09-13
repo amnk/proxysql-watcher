@@ -63,37 +63,50 @@ func main() {
 
 	conn := fmt.Sprintf("http://%s", *etcd_service)
 	c, _ := NewEtcdClient([]string{conn})
-       	//nodes := make(map[string]string)
+	//nodes := make(map[string]string)
 
 	//watcher := c.client.Watcher(*prefix, &client.WatcherOptions{AfterIndex: uint64(0), Recursive: true})
 	for {
-                //We populate ProxySQL watcher database in a loop to prevent
-                //loosing state
-	        mysql3 := []string{"-uadmin",
-	        	"-padmin",
-	        	fmt.Sprintf("-h%s", *proxy_address),
-	        	"-P6032",
-	        	"-e",
-	        	fmt.Sprintf("REPLACE INTO mysql_users (username, password, active, default_hostgroup, max_connections) VALUES ('%s', '%s', 1, 0, 200);", *proxy_user, *proxy_pass)}
+		//We populate ProxySQL watcher database in a loop to prevent
+		//loosing state
+		mysql3 := []string{"-uadmin",
+			"-padmin",
+			fmt.Sprintf("-h%s", *proxy_address),
+			"-P6032",
+			"-e",
+			fmt.Sprintf("REPLACE INTO mysql_users (username, password, active, default_hostgroup, max_connections) VALUES ('%s', '%s', 1, 0, 200);", *proxy_user, *proxy_pass)}
 
-	        mysql4 := []string{"-uadmin",
-	        	"-padmin",
-	        	fmt.Sprintf("-h%s", *proxy_address),
-	        	"-P6032",
-	        	"-e",
-	        	"LOAD MYSQL SERVERS TO RUNTIME; SAVE MYSQL SERVERS TO DISK; LOAD MYSQL USERS TO RUNTIME; SAVE MYSQL USERS TO DISK;"}
+		mysql4 := []string{"-uadmin",
+			"-padmin",
+			fmt.Sprintf("-h%s", *proxy_address),
+			"-P6032",
+			"-e",
+			fmt.Sprintf("REPLACE INTO mysql_users (username, password, active, default_hostgroup, max_connections) VALUES ('%s', '%s', 1, 0, 200);", "root", *root_pass)}
 
-	        mysql3_r := exec.Command("mysql", mysql3...)
-	        output, err3 := mysql3_r.CombinedOutput()
-	        if err3 != nil {
-	        	log.Printf(string(output))
-	        }
+		mysql5 := []string{"-uadmin",
+			"-padmin",
+			fmt.Sprintf("-h%s", *proxy_address),
+			"-P6032",
+			"-e",
+			"LOAD MYSQL SERVERS TO RUNTIME; SAVE MYSQL SERVERS TO DISK; LOAD MYSQL USERS TO RUNTIME; SAVE MYSQL USERS TO DISK;"}
 
-	        mysql4_r := exec.Command("mysql", mysql4...)
-	        output, err4 := mysql4_r.CombinedOutput()
-	        if err4 != nil {
-	        	log.Printf(string(output))
-	        }
+		mysql3_r := exec.Command("mysql", mysql3...)
+		output, err3 := mysql3_r.CombinedOutput()
+		if err3 != nil {
+			log.Printf(string(output))
+		}
+
+		mysql4_r := exec.Command("mysql", mysql4...)
+		output, err4 := mysql4_r.CombinedOutput()
+		if err4 != nil {
+			log.Printf(string(output))
+		}
+
+		mysql5_r := exec.Command("mysql", mysql5...)
+		output, err5 := mysql5_r.CombinedOutput()
+		if err5 != nil {
+			log.Printf(string(output))
+		}
 
 		// endless loop that watches for new nodes in "prefix" and
 		// populates nodes map
@@ -105,17 +118,17 @@ func main() {
 			log.Printf("Error occured: %s", err)
 		}
 
-                // Delete event is tricky, because it is either TTL or actual
-                // node poweroff. In the first case we should do nothing,
-                // in the second - delete node from ProxySQL. But we rely on
-                // ProxySQL monitoring to do this now.
-                if resp.Action == "delete" {
-                        continue
-                }
+		// Delete event is tricky, because it is either TTL or actual
+		// node poweroff. In the first case we should do nothing,
+		// in the second - delete node from ProxySQL. But we rely on
+		// ProxySQL monitoring to do this now.
+		if resp.Action == "delete" {
+			continue
+		}
 		if resp.Node.Dir {
 			key := resp.Node.Key
 			//_, ok := nodes[key]
-                        ok := false
+			ok := false
 			if !ok {
 				new_node := make(map[string]string)
 				// Apparently recursive watch does not populate
@@ -142,7 +155,7 @@ func main() {
 					//new node takes some time to boot, so
 					//if connection failes we should not
 					//exit
-                                        log.Printf(string(output))
+					log.Printf(string(output))
 					continue
 
 				}
@@ -153,10 +166,10 @@ func main() {
 					log.Printf(string(output))
 				}
 
-                                if err1 == nil && err2 == nil {
-                                        log.Printf("New node %s, adding to the cluster", key)
-                                        //nodes[key] = new_node[key]
-                                }
+				if err1 == nil && err2 == nil {
+					log.Printf("New node %s, adding to the cluster", key)
+					//nodes[key] = new_node[key]
+				}
 			}
 
 		}
