@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import argparse
 import logging
 import random
@@ -31,11 +33,14 @@ def _get_name(k8s_object):
 def _get_names(k8s_objects):
     names = []
     for item in k8s_objects or []:
-      names.append(_get_name(item))
+        names.append(_get_name(item))
     return names
 
 def _pick_random_item(item_list):
-    return random.choice(item_list)
+    try:
+        return random.choice(item_list)
+    except IndexError:
+        return None
 
 def pick_and_delete(api, namespace=None, period=None, regexp=None):
     all_pods = _get_names(get_pods(api, namespace=namespace))
@@ -44,26 +49,29 @@ def pick_and_delete(api, namespace=None, period=None, regexp=None):
     else:
         pick_list = all_pods
     pod_to_delete = _pick_random_item(pick_list)
-    delete_pod(api, namespace=namespace, name=pod_to_delete)
-    logging.warning("Pod %s deleted" % pod_to_delete)
+    if pod_to_delete:
+        delete_pod(api, namespace=namespace, name=pod_to_delete)
+        logging.warning("Pod %s deleted" % pod_to_delete)
+    else:
+        logging.warning("No pods found, sleepping")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("kube_apiserver",
+    parser.add_argument("--apiserver",
                         type=str,
                         default='localhost:8080',
                         nargs='?')
-    parser.add_argument("namespace",
+    parser.add_argument("--namespace",
                         type=str,
                         default="default",
                         nargs='?')
-    parser.add_argument("regexp", default=None, nargs='?')
-    parser.add_argument("period",
+    parser.add_argument("--regexp", default=None, nargs='?')
+    parser.add_argument("--period",
                         type=int,
                         default=10,
                         nargs='?')
     args = parser.parse_args()
-    kube_apiserver = args.kube_apiserver
+    kube_apiserver = args.apiserver
     namespace = args.namespace
     period = args.period
     if args.regexp:
